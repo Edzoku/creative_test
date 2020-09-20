@@ -25,7 +25,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class FetchDataCommand extends Command
 {
-    const DEFAULT_IMPORT_LIMIT = 10;
+    private const DEFAULT_IMPORT_LIMIT = 10;
+    private const DEFAULT_SOURCE = "https://trailers.apple.com/trailers/home/rss/newtrailers.rss";
+
     /**
      * @var string
      */
@@ -52,7 +54,7 @@ class FetchDataCommand extends Command
     private $doctrine;
 
     /**
-     * @var $importLimit
+     * @var string
      */
     private $importLimit;
 
@@ -70,8 +72,8 @@ class FetchDataCommand extends Command
         $this->httpClient = $httpClient;
         $this->logger = $logger;
         $this->doctrine = $em;
-        $this->source = getenv("MOVIES_IMPORT_URL");
-        $this->importLimit = getenv("MOVIES_IMPORT_LIMIT") ?: SELF::DEFAULT_IMPORT_LIMIT;
+        $this->source = getenv("MOVIES_IMPORT_URL") ?: self::DEFAULT_SOURCE;
+        $this->importLimit = getenv("MOVIES_IMPORT_LIMIT") ?: self::DEFAULT_IMPORT_LIMIT;
     }
 
     public function configure(): void
@@ -130,11 +132,12 @@ class FetchDataCommand extends Command
         $xml = (new \SimpleXMLElement($data))->children();
 //        $namespace = $xml->getNamespaces(true)['content'];
 //        dd((string) $xml->channel->item[0]->children($namespace)->encoded);
-        $importLimit = $this->importLimit;
+
         if (!property_exists($xml, 'channel')) {
             throw new RuntimeException('Could not find \'channel\' element in feed');
         }
 
+        $importLimit = $this->importLimit;
         $startPosition = 0;
         $endPosition = $this->importLimit--;
         $data = $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
@@ -145,8 +148,10 @@ class FetchDataCommand extends Command
                 ->setLink((string) $item->link)
                 ->setPubDate($this->parseDate((string) $item->pubDate))
             ;
+
             $this->doctrine->persist($trailer);
         }
+
         $this->doctrine->flush();
     }
 
