@@ -1,5 +1,7 @@
 FROM php:7.4-fpm-alpine
 
+WORKDIR /var/www/app
+
 RUN apk add --no-cache \
     autoconf \
     curl \
@@ -29,6 +31,8 @@ RUN apk add --no-cache \
     wget \
     zlib-dev
 
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 RUN docker-php-ext-install \
     zip \
     iconv \
@@ -48,5 +52,13 @@ RUN pecl install xdebug && \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-COPY --chown=www-data:www-data . /var/www/app
-WORKDIR /var/www/app
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+
+COPY . /var/www/app
+COPY --chown=www:www . /var/www/app
+
+USER www
+
+EXPOSE 9000
+CMD ["php-fpm"]

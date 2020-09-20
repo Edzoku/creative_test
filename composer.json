@@ -32,6 +32,7 @@
     "friendsofphp/php-cs-fixer": "^2.1",
     "phpmetrics/phpmetrics": "^2.4",
     "phpunit/phpunit": "8",
+    "roave/security-advisories": "dev-latest",
     "symfony/var-dumper": "^4.4",
     "vimeo/psalm": "^3.7"
   },
@@ -47,5 +48,9 @@
   },
   "config": {
     "sort-packages": true
+  },
+  "scripts": {
+    "serve": "php -S 0.0.0.0:8080 -t public",
+    "test": "phpunit --colors=always"
   }
 }

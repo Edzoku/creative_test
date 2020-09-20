@@ -1,25 +1,68 @@
 version: '3.7'
 
 services:
+
+  #php service
   app:
     build:
       dockerfile: docker/php-dev.Dockerfile
       context: .
+    container_name: app
+    restart: unless-stopped
     volumes:
       - .:/var/www/app
+      - ./docker/compose/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     environment:
       COMPOSER_MEMORY_LIMIT: -1
       COMPOSER_ALLOW_SUPERUSER: 1
       APP_ENV: 'dev'
     ports:
       - 8080:8080
+    networks:
+      - app-network
 
+  #Nginx service
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/app
+      - ./docker/compose/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./docker/compose/nginx/logs:/var/log/nginx
+    tty: true
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+  #MySQL service
   database:
     image: mysql:5.7
+    container_name: database
+    restart: unless-stopped
+    volumes:
+      - ./docker/compose/mysql/data:/var/lib/mysql
+      - ./docker/compose/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./docker/compose/mysql/logs:/var/log/mysql
     ports:
       - 3306:3306
+    expose:
+      - 3306
     environment:
       MYSQL_ROOT_PASSWORD: mysql
       MYSQL_DATABASE: slim_project
       MYSQL_USER: webmaster
       MYSQL_PASSWORD: webmaster
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+#Volumes
+volumes:
+  dbdata:
+    driver: local
