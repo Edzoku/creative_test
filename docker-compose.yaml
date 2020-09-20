@@ -10,8 +10,9 @@ services:
     container_name: app
     restart: unless-stopped
     volumes:
-      - .:/var/www/app
+      - .:/var/www/app/
       - ./docker/compose/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./docker/compose/php-fpm/config/php-fpm.conf:/usr/local/etc/php-fpm.conf
     environment:
       COMPOSER_MEMORY_LIMIT: -1
       COMPOSER_ALLOW_SUPERUSER: 1
@@ -27,9 +28,10 @@ services:
     container_name: webserver
     restart: unless-stopped
     volumes:
-      - .:/var/www/app
+      - .:/var/www/app/
       - ./docker/compose/nginx/conf.d/:/etc/nginx/conf.d/
-      - ./docker/compose/nginx/logs:/var/log/nginx
+      #- ./docker/compose/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/compose/nginx/logs/:/var/log/nginx/
     tty: true
     ports:
       - "80:80"
@@ -42,16 +44,14 @@ services:
     container_name: database
     restart: unless-stopped
     volumes:
-      - ./docker/compose/mysql/data:/var/lib/mysql
+      - ./docker/compose/mysql/data/:/var/lib/mysql/
       - ./docker/compose/mysql/my.cnf:/etc/mysql/my.cnf
-      - ./docker/compose/mysql/logs:/var/log/mysql
+      - ./docker/compose/mysql/logs/:/var/log/mysql/
     ports:
       - 3306:3306
-    expose:
-      - 3306
     environment:
       MYSQL_ROOT_PASSWORD: mysql
-      MYSQL_DATABASE: slim_project
+      MYSQL_DATABASE: testapp
       MYSQL_USER: webmaster
       MYSQL_PASSWORD: webmaster
     networks:

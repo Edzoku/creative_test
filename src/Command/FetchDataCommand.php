@@ -25,8 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class FetchDataCommand extends Command
 {
-    private const SOURCE = 'https://trailers.apple.com/trailers/home/rss/newtrailers.rss';
-
+    const DEFAULT_IMPORT_LIMIT = 10;
     /**
      * @var string
      */
@@ -53,6 +52,11 @@ class FetchDataCommand extends Command
     private $doctrine;
 
     /**
+     * @var $importLimit
+     */
+    private $importLimit;
+
+    /**
      * FetchDataCommand constructor.
      *
      * @param ClientInterface        $httpClient
@@ -66,6 +70,8 @@ class FetchDataCommand extends Command
         $this->httpClient = $httpClient;
         $this->logger = $logger;
         $this->doctrine = $em;
+        $this->source = getenv("MOVIES_IMPORT_URL");
+        $this->importLimit = getenv("MOVIES_IMPORT_LIMIT") ?: SELF::DEFAULT_IMPORT_LIMIT;
     }
 
     public function configure(): void
@@ -85,11 +91,13 @@ class FetchDataCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->logger->info(sprintf('Start %s at %s', __CLASS__, (string) date_create()->format(DATE_ATOM)));
-        $source = self::SOURCE;
+        $source = $this->source;
         if ($input->getArgument('source')) {
             $source = $input->getArgument('source');
         }
-
+        if (!isset($source) or trim($source) === "") {
+            throw new RuntimeException('Source must be set. Check .env file or set argument "source"');
+        }
         if (!is_string($source)) {
             throw new RuntimeException('Source must be string');
         }
@@ -122,21 +130,23 @@ class FetchDataCommand extends Command
         $xml = (new \SimpleXMLElement($data))->children();
 //        $namespace = $xml->getNamespaces(true)['content'];
 //        dd((string) $xml->channel->item[0]->children($namespace)->encoded);
-
+        $importLimit = $this->importLimit;
         if (!property_exists($xml, 'channel')) {
             throw new RuntimeException('Could not find \'channel\' element in feed');
         }
-        foreach ($xml->channel->item as $item) {
+
+        $startPosition = 0;
+        $endPosition = $this->importLimit--;
+        $data = $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
+        foreach ($data as $item) {
             $trailer = $this->getMovie((string) $item->title)
                 ->setTitle((string) $item->title)
                 ->setDescription((string) $item->description)
                 ->setLink((string) $item->link)
                 ->setPubDate($this->parseDate((string) $item->pubDate))
             ;
-
             $this->doctrine->persist($trailer);
         }
-
         $this->doctrine->flush();
     }
 
