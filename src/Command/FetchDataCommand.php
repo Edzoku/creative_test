@@ -54,7 +54,7 @@ class FetchDataCommand extends Command
     private $doctrine;
 
     /**
-     * @var string
+     * @var integer
      */
     private $importLimit;
 
@@ -73,7 +73,7 @@ class FetchDataCommand extends Command
         $this->logger = $logger;
         $this->doctrine = $em;
         $this->source = getenv("MOVIES_IMPORT_URL") ?: self::DEFAULT_SOURCE;
-        $this->importLimit = getenv("MOVIES_IMPORT_LIMIT") ?: self::DEFAULT_IMPORT_LIMIT;
+        $this->importLimit = (integer) getenv("MOVIES_IMPORT_LIMIT") ?: self::DEFAULT_IMPORT_LIMIT;
     }
 
     public function configure(): void
@@ -97,12 +97,10 @@ class FetchDataCommand extends Command
         if ($input->getArgument('source')) {
             $source = $input->getArgument('source');
         }
-        if (!isset($source) or trim($source) === "") {
-            throw new RuntimeException('Source must be set. Check .env file or set argument "source"');
+        if (!is_string($source) or $source === "") {
+            throw new RuntimeException('The source parameter is not correct. Check /.env file or set argument "source"');
         }
-        if (!is_string($source)) {
-            throw new RuntimeException('Source must be string');
-        }
+
         $io = new SymfonyStyle($input, $output);
         $io->title(sprintf('Fetch data from %s', $source));
 
@@ -137,7 +135,10 @@ class FetchDataCommand extends Command
             throw new RuntimeException('Could not find \'channel\' element in feed');
         }
 
-        $importLimit = $this->importLimit;
+        $importLimit = (integer) $this->importLimit;
+        if (!is_int($importLimit) or $importLimit <= 0) {
+            throw new RuntimeException('The limit parameter is not correct. Check /.env file.');
+        }
         $startPosition = 0;
         $endPosition = $this->importLimit--;
         $data = $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
