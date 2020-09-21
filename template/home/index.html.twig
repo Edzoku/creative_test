@@ -16,12 +16,10 @@
                             <img src="{{ trailer.image }}" class="card-img-top" alt="{{ trailer.title }}">
                             <div class="d-flex flex-column justify-content-between card-body">
                                 <h5 class="card-title">
-                                    <a href="">
+                                    <a href="/movie?id={{ trailer.id }}">
                                         {{ trailer.title }}
                                     </a>
                                 </h5>
-                                {# <p class="card-text">{{ trailer.description|slice(0,150) }}...</p>
-                                <a href="" class="btn btn-primary">Подробнее</a> #}
                             </div>
                         </div>
                     </div>

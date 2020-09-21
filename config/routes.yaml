@@ -3,4 +3,9 @@ main:
   path: ~
   controller: App\Controller\HomeController
   action: index
+movie:
+  method: 'get'
+  path: movie
+  controller: App\Controller\MovieController
+  action: index
 

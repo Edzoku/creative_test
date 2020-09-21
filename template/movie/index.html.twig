@@ -1,0 +1,28 @@
+{% extends 'main.html.twig' %}
+
+{% block title %}{{ trailers | length }} iTunes Movie trailers{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row pt-3 pb-5">
+            <div class="d-flex justify-content-end col-sm-12">
+                <a href="/" class="btn btn-sm btn-outline-secondary">Go back</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-6 col-lg-4">
+                <img src="{{ movie.image }}" alt="{{ movie.title }}" class="img-thumbnail w-100">
+            </div>
+            <div class="col-sm-12 col-md-6 col-lg-8">
+                <h3>
+                    {{ movie.title }}
+                </h3>
+                <p class="text-justify">
+                    {{ movie.description }}
+                </p>
+                <p class="text-secondary">{{ movie.pubDate|date("m/d/Y") }}</p>
+                <a href="{{ movie.link }}" class="btn btn-outline-primary">On Apple Trailers</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
