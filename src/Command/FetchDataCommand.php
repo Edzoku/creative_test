@@ -59,12 +59,17 @@ class FetchDataCommand extends Command
     private $importLimit;
 
     /**
+     * @var DOMDocument
+     */
+    private $htmlParser;
+
+    /**
      * FetchDataCommand constructor.
      *
-     * @param ClientInterface        $httpClient
-     * @param LoggerInterface        $logger
+     * @param ClientInterface $httpClient
+     * @param LoggerInterface $logger
      * @param EntityManagerInterface $em
-     * @param string|null            $name
+     * @param string|null $name
      */
     public function __construct(ClientInterface $httpClient, LoggerInterface $logger, EntityManagerInterface $em, string $name = null)
     {
@@ -73,26 +78,26 @@ class FetchDataCommand extends Command
         $this->logger = $logger;
         $this->doctrine = $em;
         $this->source = getenv("MOVIES_IMPORT_URL") ?: self::DEFAULT_SOURCE;
-        $this->importLimit = (integer) getenv("MOVIES_IMPORT_LIMIT") ?: self::DEFAULT_IMPORT_LIMIT;
+        $this->importLimit = (integer)getenv("MOVIES_IMPORT_LIMIT") ?: self::DEFAULT_IMPORT_LIMIT;
+        $this->htmlParser = new \DOMDocument();
     }
 
     public function configure(): void
     {
         $this
             ->setDescription('Fetch data from iTunes Movie Trailers')
-            ->addArgument('source', InputArgument::OPTIONAL, 'Overwrite source')
-        ;
+            ->addArgument('source', InputArgument::OPTIONAL, 'Overwrite source');
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
      * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->logger->info(sprintf('Start %s at %s', __CLASS__, (string) date_create()->format(DATE_ATOM)));
+        $this->logger->info(sprintf('Start %s at %s', __CLASS__, (string)date_create()->format(DATE_ATOM)));
         $source = $this->source;
         if ($input->getArgument('source')) {
             $source = $input->getArgument('source');
@@ -112,43 +117,41 @@ class FetchDataCommand extends Command
         if (($status = $response->getStatusCode()) !== 200) {
             throw new RuntimeException(sprintf('Response status is %d, expected %d', $status, 200));
         }
+
         $data = $response->getBody()->getContents();
+        if (empty($data)) {
+            throw new RuntimeException(sprintf('Response content is empty.'));
+        }
         $this->processXml($data);
 
-        $this->logger->info(sprintf('End %s at %s', __CLASS__, (string) date_create()->format(DATE_ATOM)));
+        $this->logger->info(sprintf('End %s at %s', __CLASS__, (string)date_create()->format(DATE_ATOM)));
 
         return 0;
     }
 
     /**
-     * @param string $data
+     * @param string $xml
      *
      * @throws \Exception
      */
     protected function processXml(string $data): void
     {
         $xml = (new \SimpleXMLElement($data))->children();
-//        $namespace = $xml->getNamespaces(true)['content'];
-//        dd((string) $xml->channel->item[0]->children($namespace)->encoded);
 
         if (!property_exists($xml, 'channel')) {
             throw new RuntimeException('Could not find \'channel\' element in feed');
         }
 
-        $importLimit = (integer) $this->importLimit;
-        if (!is_int($importLimit) or $importLimit <= 0) {
-            throw new RuntimeException('The limit parameter is not correct. Check /.env file.');
-        }
-        $startPosition = 0;
-        $endPosition = $this->importLimit--;
-        $data = $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
+        $data = $this->prepareXml($xml);
+
         foreach ($data as $item) {
-            $trailer = $this->getMovie((string) $item->title)
-                ->setTitle((string) $item->title)
-                ->setDescription((string) $item->description)
-                ->setLink((string) $item->link)
-                ->setPubDate($this->parseDate((string) $item->pubDate))
-            ;
+            $htmlContent = (string)$item->children('content', true)->encoded;
+            $trailer = $this->getMovie((string)$item->title)
+                ->setTitle((string)$item->title)
+                ->setDescription((string)$item->description)
+                ->setLink((string)$item->link)
+                ->setPubDate($this->parseDate((string)$item->pubDate))
+                ->setImage($this->parseImgSrc($htmlContent));
 
             $this->doctrine->persist($trailer);
         }
@@ -190,4 +193,41 @@ class FetchDataCommand extends Command
 
         return $item;
     }
+
+    /**
+     * @param \SimpleXMLElement $xml
+     *
+     * @return \SimpleXMLElement[]
+     */
+    protected function prepareXml(\SimpleXMLElement $xml): iterable
+    {
+        $importLimit = (integer)$this->importLimit;
+
+        if (!is_int($importLimit) or $importLimit <= 0) {
+            throw new RuntimeException('The limit parameter is not correct. Check /.env file.');
+        }
+
+        $startPosition = 0;
+        $endPosition = $this->importLimit--;
+
+        return $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
+    }
+
+    /**
+     * @param string $html
+     *
+     * @return string|null
+     */
+    protected function parseImgSrc($html): ?string
+    {
+        @$this->htmlParser->loadHTML($html);
+        $src = $this->htmlParser->getElementsByTagName("img");
+
+        if ($src->count() > 0) {
+            return $src[0]->getAttribute('src');
+        }
+
+        return null;
+    }
 }
+
