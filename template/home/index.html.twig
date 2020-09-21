@@ -4,13 +4,34 @@
 
 {% block content %}
     <div class="container">
-        <h1 class="mt-5 mb-4">{{ trailers | length }} iTunes Movie trailers</h1>
-        <table class="table table-bordered">
-            {% for trailer in trailers %}
-                <tr>
-                    <td>{{ trailer.title }}</td>
-                </tr>
-            {% endfor %}
-        </table>
+        <div class="row">
+            <h1 class="col-sm-12 mt-5 mb-4">{{ trailers | length }} iTunes Movie trailers</h1>
+        </div>
+        {% for trailer in trailers %}
+            {% if loop.first %}
+                <div class="d-flex flex-sm-row">
+            {% endif %}
+                    <div class="d-flex w-25 p-2 bd-highlight">
+                        <div class="card w-100">
+                            <img src="{{ trailer.image }}" class="card-img-top" alt="{{ trailer.title }}">
+                            <div class="d-flex flex-column justify-content-between card-body">
+                                <h5 class="card-title">
+                                    <a href="">
+                                        {{ trailer.title }}
+                                    </a>
+                                </h5>
+                                {# <p class="card-text">{{ trailer.description|slice(0,150) }}...</p>
+                                <a href="" class="btn btn-primary">Подробнее</a> #}
+                            </div>
+                        </div>
+                    </div>
+            {% if (loop.index % 4 == 0) %}
+                </div>
+                <div class="d-flex flex-sm-row">
+            {% endif %}
+            {% if loop.last %}
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock %}

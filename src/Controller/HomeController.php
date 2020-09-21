@@ -8,6 +8,7 @@ use App\Entity\Movie;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Exception\HttpBadRequestException;
@@ -38,8 +39,8 @@ class HomeController
      * HomeController constructor.
      *
      * @param RouteCollectorInterface $routeCollector
-     * @param Environment             $twig
-     * @param EntityManagerInterface  $em
+     * @param Environment $twig
+     * @param EntityManagerInterface $em
      */
     public function __construct(RouteCollectorInterface $routeCollector, Environment $twig, EntityManagerInterface $em)
     {
@@ -50,7 +51,7 @@ class HomeController
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
+     * @param ResponseInterface $response
      *
      * @return ResponseInterface
      *
@@ -60,9 +61,9 @@ class HomeController
     {
         try {
             $data = $this->twig->render('home/index.html.twig', [
-                'trailers' => $this->fetchData(),
+                'trailers' => $this->fetchData(10),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new HttpBadRequestException($request, $e->getMessage(), $e);
         }
 
@@ -72,12 +73,14 @@ class HomeController
     }
 
     /**
+     * @param int $limit
+     *
      * @return Collection
      */
-    protected function fetchData(): Collection
+    protected function fetchData(int $limit): Collection
     {
         $data = $this->em->getRepository(Movie::class)
-            ->findAll();
+            ->findBy([], ['pubDate' => 'DESC'], $limit);
 
         return new ArrayCollection($data);
     }

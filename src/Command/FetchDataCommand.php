@@ -130,7 +130,7 @@ class FetchDataCommand extends Command
     }
 
     /**
-     * @param string $xml
+     * @param string $data
      *
      * @throws \Exception
      */
