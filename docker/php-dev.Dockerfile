@@ -49,7 +49,7 @@ RUN pecl install xdebug && \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 COPY . /var/www/app
-RUN chown -R nobody:nobody /var/www/app
+RUN chown -R nobody:nobody /var/www/app && chmod 0775 /var/www/app
 
 WORKDIR /var/www/app
 
