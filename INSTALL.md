@@ -42,10 +42,6 @@ database                 docker-entrypoint.sh mysqld      Up      0.0.0.0:3306->
 ```
 docker-compose exec app composer install
 ```
-Правим права на кэш:
-```
-docker-compose exec app chown -R nobody:nobody /var/www/app/var
-```
 Создаем таблицы в базе данных:
 ```
 docker-compose exec app php /var/www/app/bin/console orm:schema-tool:create
@@ -57,4 +53,11 @@ docker-compose exec app php /var/www/app/bin/console orm:schema-tool:create
 Для импорта фильмов из Apple Trailers необходимо выполнить команду:
 ```
 docker-compose exec app php /var/www/app/bin/console fetch:trailers
+```
+При возникновении ошибки:
+> The directory "/var/www/app/var/cache/doctrine" is not writable.
+
+Необходимо поправить права на каталог кэша:
+```
+docker-compose exec app chown -R nobody:nobody /var/www/app/var
 ```
