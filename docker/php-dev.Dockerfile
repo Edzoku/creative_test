@@ -31,8 +31,6 @@ RUN apk add --no-cache \
     wget \
     zlib-dev
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
 RUN docker-php-ext-install \
     zip \
     iconv \
