@@ -6,4 +6,3 @@ config/app.*.yaml
 .env.local
 .env.*.local
 .idea
-var/
