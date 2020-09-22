@@ -1,6 +1,10 @@
 main:
   method: 'get'
   path: ~
-  controller: App\Controller\HomeController
+  controller: App\Controller\Home\HomeController
   action: index
-
+movie:
+  method: 'get'
+  path: movie
+  controller: App\Controller\Movie\MovieController
+  action: index
