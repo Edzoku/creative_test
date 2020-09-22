@@ -1,7 +1,5 @@
 FROM php:7.4-fpm-alpine
 
-WORKDIR /var/www/app
-
 RUN apk add --no-cache \
     autoconf \
     curl \
@@ -51,9 +49,9 @@ RUN pecl install xdebug && \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 COPY . /var/www/app
-COPY --chown=www-data:www-data . /var/www/app
+RUN chown -R nobody:nobody /var/www/app
 
-USER www-data
+WORKDIR /var/www/app
 
 EXPOSE 9000
 CMD ["php-fpm"]
