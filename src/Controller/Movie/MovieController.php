@@ -1,55 +1,21 @@
 <?php
 
-declare(strict_types=1);
+namespace App\Controller\Movie;
 
-namespace App\Controller;
-
+use App\Controller\BaseController;
 use App\Entity\Movie;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpNotFoundException;
-use Slim\Interfaces\RouteCollectorInterface;
-use Twig\Environment;
 
 /**
- * Class HomeController.
+ * Class MovieController
+ *
+ * @package App\Controller\Movie
  */
-class MovieController
+class MovieController extends BaseController
 {
-    /**
-     * @var RouteCollectorInterface
-     */
-    private $routeCollector;
-
-    /**
-     * @var Environment
-     */
-    private $twig;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
-     * HomeController constructor.
-     *
-     * @param RouteCollectorInterface $routeCollector
-     * @param Environment $twig
-     * @param EntityManagerInterface $em
-     */
-    public function __construct(RouteCollectorInterface $routeCollector, Environment $twig, EntityManagerInterface $em)
-    {
-        $this->routeCollector = $routeCollector;
-        $this->twig = $twig;
-        $this->em = $em;
-    }
-
     /**
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
@@ -69,6 +35,7 @@ class MovieController
         if (empty($movie)) {
             throw new HttpNotFoundException($request);
         }
+
         try {
             $data = $this->twig->render('movie/index.html.twig', [
                 'movie' => $movie,
@@ -89,8 +56,6 @@ class MovieController
      */
     protected function fetchData(int $id): Movie
     {
-        $data = $this->em->getRepository(Movie::class)
-            ->find($id);
-        return $data;
+        return $this->em->getRepository(Movie::class)->find($id);
     }
 }

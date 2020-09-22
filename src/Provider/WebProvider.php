@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace App\Provider;
 
-use App\Controller\HomeController;
-use App\Controller\MovieController;
+use App\Controller\Home\HomeController;
+use App\Controller\Movie\MovieController;
 use App\Support\Config;
 use App\Support\ServiceProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;

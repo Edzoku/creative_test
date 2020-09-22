@@ -1,54 +1,23 @@
 <?php
 
-declare(strict_types=1);
+namespace App\Controller\Home;
 
-namespace App\Controller;
-
+use App\Controller\BaseController;
 use App\Entity\Movie;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Exception\HttpBadRequestException;
-use Slim\Interfaces\RouteCollectorInterface;
-use Twig\Environment;
 
 /**
- * Class HomeController.
+ * Class HomeController
+ *
+ * @package App\Controller\Home
  */
-class HomeController
+class HomeController extends BaseController
 {
-    /**
-     * @var RouteCollectorInterface
-     */
-    private $routeCollector;
-
-    /**
-     * @var Environment
-     */
-    private $twig;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
-     * HomeController constructor.
-     *
-     * @param RouteCollectorInterface $routeCollector
-     * @param Environment $twig
-     * @param EntityManagerInterface $em
-     */
-    public function __construct(RouteCollectorInterface $routeCollector, Environment $twig, EntityManagerInterface $em)
-    {
-        $this->routeCollector = $routeCollector;
-        $this->twig = $twig;
-        $this->em = $em;
-    }
-
     /**
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
@@ -85,3 +54,4 @@ class HomeController
         return new ArrayCollection($data);
     }
 }
+
