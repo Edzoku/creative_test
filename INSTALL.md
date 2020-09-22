@@ -42,15 +42,11 @@ database                 docker-entrypoint.sh mysqld      Up      0.0.0.0:3306->
 ```
 docker-compose exec app composer install
 ```
-Подтягиваем зависимости, обращаясь к контейнеру app:
-```
-docker-compose exec app composer install
-```
 Создаем таблицы в базе данных:
 ```
 docker-compose exec app php /var/www/app/bin/console orm:schema-tool:create
 ```
-###Работа с приложением
+### Работа с приложением
 Приложение по-умолчанию доступно по адресу:
 > http://localhost:80
 
