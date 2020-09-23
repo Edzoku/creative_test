@@ -208,7 +208,7 @@ class FetchDataCommand extends Command
         }
 
         $startPosition = 0;
-        $endPosition = $this->importLimit--;
+        $endPosition = $this->importLimit - 1;
 
         return $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
     }
