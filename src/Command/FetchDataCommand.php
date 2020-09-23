@@ -207,8 +207,8 @@ class FetchDataCommand extends Command
             throw new RuntimeException('The limit parameter is not correct. Check /.env file.');
         }
 
-        $startPosition = 0;
-        $endPosition = $this->importLimit - 1;
+        $startPosition = 1;
+        $endPosition = $this->importLimit;
 
         return $xml->channel->xpath("//item[position()>= $startPosition and not(position() > $endPosition)]");
     }
